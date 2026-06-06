@@ -1,87 +1,290 @@
-# RateStore — Full-Stack Rating Platform
+# ⭐ RateStore
 
-A professional web application for store ratings with role-based access control.
-Built with **Express.js**, **PostgreSQL**, and **React**.
+A full-stack Store Rating & Management Platform built using **React.js**, **Node.js**, **Express.js**, and **PostgreSQL**.
 
----
-
-## Tech Stack
-
-| Layer     | Technology            |
-|-----------|-----------------------|
-| Backend   | Express.js (Node.js)  |
-| Database  | PostgreSQL            |
-| Frontend  | React.js              |
-| Auth      | JWT (JSON Web Tokens) |
-| Styling   | Custom CSS (DM Sans + Syne fonts) |
+RateStore enables customers to discover and review stores, store owners to monitor ratings and manage their stores, and administrators to oversee the entire platform through a secure Role-Based Access Control (RBAC) system.
 
 ---
 
-## Project Structure
+## 🚀 Live Features
 
+### 👨‍💼 Administrator
+
+* Dashboard with platform statistics
+* View total users, stores, and ratings
+* Manage users
+* Add new users
+* Delete users
+* Search users by name, email, and address
+* Filter users by role
+* Manage stores
+* View store reviews
+* Delete stores
+* Review and approve store requests
+* Change password
+
+---
+
+### 🏪 Store Owner
+
+* Dedicated analytics dashboard
+* View all owned stores
+* Monitor average ratings
+* View rating distribution breakdown
+* Review customer feedback
+* Edit store information
+* Edit profile
+* Change password
+* Request new store creation
+* Request store updates
+* Request store deletion
+
+---
+
+### 👤 Normal User
+
+* Self registration
+* Secure login
+* Browse stores
+* Search stores by name
+* Search stores by address
+* Submit ratings (1–5 stars)
+* Update existing ratings
+* View community reviews
+* Change password
+
+---
+
+## ✨ Key Highlights
+
+✅ Role-Based Access Control (RBAC)
+
+✅ JWT Authentication
+
+✅ bcrypt Password Hashing
+
+✅ PostgreSQL Relational Database
+
+✅ Store Rating System
+
+✅ Community Reviews
+
+✅ Store Analytics Dashboard
+
+✅ Store Request Approval Workflow
+
+✅ Search & Filtering
+
+✅ Responsive UI
+
+✅ Protected Routes
+
+✅ Input Validation & Sanitization
+
+---
+
+## 🛠 Tech Stack
+
+| Layer             | Technology           |
+| ----------------- | -------------------- |
+| Frontend          | React.js             |
+| Backend           | Node.js + Express.js |
+| Database          | PostgreSQL           |
+| Authentication    | JWT                  |
+| Password Security | bcrypt               |
+| Validation        | express-validator    |
+| State Management  | Context API          |
+| Styling           | Custom CSS           |
+| Fonts             | DM Sans, Syne        |
+
+---
+
+## 🏗 System Architecture
+
+```text
+React Frontend
+      │
+      ▼
+Express REST API
+      │
+      ▼
+PostgreSQL Database
 ```
-ratestore/
-├── backend/
-│   ├── src/
-│   │   ├── db.js                  # PostgreSQL connection + schema init
-│   │   ├── middleware/
-│   │   │   ├── auth.js            # JWT authentication middleware
-│   │   │   └── validate.js        # express-validator rules
-│   │   └── routes/
-│   │       ├── auth.js            # Login, register, password update
-│   │       ├── admin.js           # Admin-only endpoints
-│   │       ├── stores.js          # Store listing + ratings (users)
-│   │       └── owner.js           # Store owner dashboard API
-│   ├── server.js                  # Entry point
-│   ├── .env                       # Environment variables
-│   └── package.json
-│
-└── frontend/
-    ├── src/
-    │   ├── api.js                 # Axios instance with JWT interceptor
-    │   ├── context/
-    │   │   ├── AuthContext.js     # Authentication state
-    │   │   └── ToastContext.js    # Toast notifications
-    │   ├── components/
-    │   │   ├── Sidebar.js         # Navigation sidebar
-    │   │   ├── ProtectedRoute.js  # Route guard
-    │   │   ├── StarRating.js      # Star input + display
-    │   │   └── SortableTh.js     # Sortable table header
-    │   └── pages/
-    │       ├── Login.js
-    │       ├── Register.js
-    │       ├── ChangePassword.js
-    │       ├── admin/
-    │       │   ├── Dashboard.js   # Stats overview
-    │       │   ├── Users.js       # User management + add
-    │       │   ├── UserDetail.js  # Individual user profile
-    │       │   └── Stores.js      # Store management + add
-    │       ├── user/
-    │       │   └── BrowseStores.js  # Store listing + rating
-    │       └── owner/
-    │           └── Dashboard.js   # Owner's store analytics
-    └── package.json
+
+### Frontend
+
+* React SPA (Single Page Application)
+* Context API
+* Protected Routes
+* Reusable Components
+* Role-based Navigation
+
+### Backend
+
+* Express.js REST API
+* JWT Middleware
+* Role-based Authorization
+* Validation Middleware
+* PostgreSQL Integration
+
+### Security
+
+* Password hashing using bcrypt (12 rounds)
+* JWT tokens expire after 24 hours
+* Input validation and sanitization
+* Parameterized SQL queries
+* Protected API routes
+
+---
+
+## 📊 Database Schema
+
+### Users
+
+| Field    | Type                       |
+| -------- | -------------------------- |
+| id       | UUID                       |
+| name     | String                     |
+| email    | String                     |
+| password | Hashed Password            |
+| address  | Text                       |
+| role     | admin / user / store_owner |
+
+### Stores
+
+| Field    | Type        |
+| -------- | ----------- |
+| id       | UUID        |
+| name     | String      |
+| email    | String      |
+| address  | Text        |
+| owner_id | Foreign Key |
+
+### Ratings
+
+| Field    | Type          |
+| -------- | ------------- |
+| id       | UUID          |
+| user_id  | Foreign Key   |
+| store_id | Foreign Key   |
+| rating   | Integer (1–5) |
+
+### Store Requests
+
+| Field        | Type                          |
+| ------------ | ----------------------------- |
+| id           | UUID                          |
+| owner_id     | Foreign Key                   |
+| store_id     | Foreign Key                   |
+| request_type | Create / Edit / Delete        |
+| note         | Text                          |
+| status       | Pending / Approved / Rejected |
+
+---
+
+## 📈 Entity Relationship Diagram
+
+```mermaid
+erDiagram
+
+    USERS ||--o{ STORES : owns
+    USERS ||--o{ RATINGS : submits
+    STORES ||--o{ RATINGS : receives
+
+    USERS ||--o{ STORE_REQUESTS : creates
+    STORES ||--o{ STORE_REQUESTS : references
+
+    USERS {
+        uuid id PK
+        string name
+        string email
+        string password
+        string address
+        string role
+    }
+
+    STORES {
+        uuid id PK
+        string name
+        string email
+        string address
+        uuid owner_id FK
+    }
+
+    RATINGS {
+        uuid id PK
+        uuid user_id FK
+        uuid store_id FK
+        int rating
+    }
+
+    STORE_REQUESTS {
+        uuid id PK
+        uuid owner_id FK
+        uuid store_id FK
+        string request_type
+        string status
+    }
 ```
 
 ---
 
-## Prerequisites
+## 🔐 Demo Credentials
 
-- **Node.js** v16+ and npm
-- **PostgreSQL** 13+ running locally or remotely
+### Administrator
+
+| Email                                             | Password  |
+| ------------------------------------------------- | --------- |
+| [admin@ratestore.com](mailto:admin@ratestore.com) | Admin@123 |
 
 ---
 
-## Database Setup
+### Store Owners
 
-```sql
--- Create database
-CREATE DATABASE ratestore;
+All store owners use:
 
--- Connect to it
-\c ratestore
+```text
+Password: Ratestore@1
+```
 
--- Tables are auto-created on server start (see src/db.js)
+| Name                     | Email                                                               |
+| ------------------------ | ------------------------------------------------------------------- |
+| Ramesh Kumar Agarwal     | [ramesh.agarwal@ratestore.com](mailto:ramesh.agarwal@ratestore.com) |
+| Sunita Devi Sharma       | [sunita.sharma@ratestore.com](mailto:sunita.sharma@ratestore.com)   |
+| Vikram Singh Rajput      | [vikram.rajput@ratestore.com](mailto:vikram.rajput@ratestore.com)   |
+| Priya Nair Krishnamurthy | [priya.nair@ratestore.com](mailto:priya.nair@ratestore.com)         |
+| Deepak Mohan Verma       | [deepak.verma@ratestore.com](mailto:deepak.verma@ratestore.com)     |
+| Anita Suresh Pillai      | [anita.pillai@ratestore.com](mailto:anita.pillai@ratestore.com)     |
+
+---
+
+### Normal Users
+
+All users use:
+
+```text
+Password: Ratestore@1
+```
+
+Examples:
+
+| Name                | Email                                                   |
+| ------------------- | ------------------------------------------------------- |
+| Rahul Pratap Singh  | [rahul.singh@gmail.com](mailto:rahul.singh@gmail.com)   |
+| Anjali Kumari Gupta | [anjali.gupta@gmail.com](mailto:anjali.gupta@gmail.com) |
+| Amit Suresh Patel   | [amit.patel@gmail.com](mailto:amit.patel@gmail.com)     |
+| Pooja Rajesh Mehta  | [pooja.mehta@gmail.com](mailto:pooja.mehta@gmail.com)   |
+| Sanjay Balram Yadav | [sanjay.yadav@gmail.com](mailto:sanjay.yadav@gmail.com) |
+
+---
+
+## ⚙️ Installation
+
+### Clone Repository
+
+```bash
+git clone https://github.com/Gaurav27005/Store-Rating.git
+cd Store-Rating
 ```
 
 ---
@@ -90,33 +293,23 @@ CREATE DATABASE ratestore;
 
 ```bash
 cd backend
-
-# Install dependencies
 npm install
-
-# Configure environment
-# Edit .env to match your PostgreSQL credentials:
-nano .env
 ```
 
-**.env file:**
+Create `.env`
+
 ```env
-DATABASE_URL=postgresql://postgres:password@localhost:5432/ratestore
-JWT_SECRET=your_super_secret_key_here
+DATABASE_URL=your_postgresql_connection_string
+JWT_SECRET=your_secret_key
 PORT=5000
 FRONTEND_URL=http://localhost:3000
 ```
 
+Run backend:
+
 ```bash
-# Start the server
 npm start
 ```
-
-On first start, the server will:
-1. Create all tables (users, stores, ratings)
-2. Seed a default admin account:
-   - **Email:** admin@ratestore.com
-   - **Password:** Admin@123
 
 ---
 
@@ -124,176 +317,158 @@ On first start, the server will:
 
 ```bash
 cd frontend
-
-# Install dependencies
 npm install
-
-# Configure API URL (optional, defaults to localhost:5000)
-# Edit .env:
-REACT_APP_API_URL=http://localhost:5000/api
-
-# Start development server
-npm start
-
-# OR build for production
-npm run build
 ```
 
----
+Create `.env`
 
-## Running Both Together
+```env
+REACT_APP_API_URL=http://localhost:5000
+```
 
-Open two terminals:
+Run frontend:
 
 ```bash
-# Terminal 1 - Backend
-cd backend && npm start
-
-# Terminal 2 - Frontend
-cd frontend && npm start
+npm start
 ```
 
-Visit **http://localhost:3000**
+---
+
+## 🌱 Seed Database
+
+After starting the backend once:
+
+```bash
+cd backend
+node seed.js
+```
+
+This automatically creates:
+
+* 1 Administrator
+* 6 Store Owners
+* 15 Users
+* 10 Indian Stores
+* 75 Ratings
 
 ---
 
-## User Roles & Credentials
+## 📡 API Endpoints
 
-| Role          | Access                                      | How to create           |
-|---------------|---------------------------------------------|-------------------------|
-| Admin         | Full platform management                    | Seeded on first run     |
-| Normal User   | Browse stores, submit/modify ratings        | Self-register on /register |
-| Store Owner   | View their store's ratings & analytics      | Created by admin        |
+### Authentication
 
----
-
-## API Endpoints
-
-### Auth
-| Method | Endpoint             | Description              | Auth   |
-|--------|----------------------|--------------------------|--------|
-| POST   | /api/auth/login      | Login (all roles)        | No     |
-| POST   | /api/auth/register   | Register (user only)     | No     |
-| PUT    | /api/auth/password   | Update password          | Yes    |
-| GET    | /api/auth/me         | Get current user profile | Yes    |
+```http
+POST /api/auth/login
+POST /api/auth/register
+PUT  /api/auth/password
+```
 
 ### Admin
-| Method | Endpoint                | Description              | Auth   |
-|--------|-------------------------|--------------------------|--------|
-| GET    | /api/admin/dashboard    | Stats (users/stores/ratings) | Admin |
-| GET    | /api/admin/users        | List users (with filters) | Admin |
-| POST   | /api/admin/users        | Create user              | Admin  |
-| GET    | /api/admin/users/:id    | User detail              | Admin  |
-| GET    | /api/admin/stores       | List stores (with filters) | Admin |
-| POST   | /api/admin/stores       | Create store             | Admin  |
-| GET    | /api/admin/store-owners | List store owners        | Admin  |
 
-### Stores (Normal User)
-| Method | Endpoint                    | Description          | Auth |
-|--------|-----------------------------|----------------------|------|
-| GET    | /api/stores                 | Browse stores        | User |
-| POST   | /api/stores/:id/rate        | Submit/update rating | User |
+```http
+GET    /api/admin/dashboard
+GET    /api/admin/users
+POST   /api/admin/users
+GET    /api/admin/stores
+POST   /api/admin/stores
+```
+
+### Stores
+
+```http
+GET  /api/stores
+POST /api/stores/:id/rate
+PUT  /api/stores/:id/rate
+```
 
 ### Owner
-| Method | Endpoint               | Description            | Auth  |
-|--------|------------------------|------------------------|-------|
-| GET    | /api/owner/dashboard   | Store analytics & raters | Owner |
 
----
-
-## Form Validation Rules
-
-| Field    | Rules                                                                      |
-|----------|----------------------------------------------------------------------------|
-| Name     | Min 20 chars, Max 60 chars                                                 |
-| Email    | Standard email format                                                      |
-| Password | 8–16 chars, at least 1 uppercase, at least 1 special character             |
-| Address  | Max 400 chars                                                              |
-| Rating   | Integer 1–5                                                                |
-
----
-
-## Database Schema
-
-```sql
-users (
-  id          UUID PRIMARY KEY,
-  name        VARCHAR(60) NOT NULL,
-  email       VARCHAR(255) UNIQUE NOT NULL,
-  password    VARCHAR(255) NOT NULL,   -- bcrypt hash
-  address     VARCHAR(400),
-  role        VARCHAR(20) CHECK (role IN ('admin','user','store_owner')),
-  created_at  TIMESTAMP,
-  updated_at  TIMESTAMP
-)
-
-stores (
-  id          UUID PRIMARY KEY,
-  name        VARCHAR(60) NOT NULL,
-  email       VARCHAR(255) UNIQUE NOT NULL,
-  address     VARCHAR(400),
-  owner_id    UUID REFERENCES users(id),
-  created_at  TIMESTAMP,
-  updated_at  TIMESTAMP
-)
-
-ratings (
-  id          UUID PRIMARY KEY,
-  store_id    UUID REFERENCES stores(id) ON DELETE CASCADE,
-  user_id     UUID REFERENCES users(id) ON DELETE CASCADE,
-  rating      INTEGER CHECK (rating BETWEEN 1 AND 5),
-  created_at  TIMESTAMP,
-  updated_at  TIMESTAMP,
-  UNIQUE(store_id, user_id)   -- one rating per user per store
-)
+```http
+GET /api/owner/dashboard
 ```
 
 ---
 
-## Features Implemented
+## 📸 Screenshots
 
-### System Administrator
-- ✅ Dashboard with total users, stores, ratings
-- ✅ Add users (normal, admin, store owner)
-- ✅ Add stores with optional owner assignment
-- ✅ List users with filters (name, email, address, role) + sorting
-- ✅ List stores with filters (name, email, address) + sorting
-- ✅ User detail view (shows store rating if store owner)
-- ✅ Logout
+### Authentication
 
-### Normal User
-- ✅ Register and login
-- ✅ Browse all stores (search by name/address)
-- ✅ See store's overall rating and their own submitted rating
-- ✅ Submit rating (1–5 stars)
-- ✅ Modify existing rating
-- ✅ Change password
-- ✅ Logout
+* Login Page
+* Registration Page
 
-### Store Owner
-- ✅ Login
-- ✅ Dashboard with average rating and rating breakdown chart
-- ✅ View all users who rated their store
-- ✅ Change password
-- ✅ Logout
+### User Dashboard
 
----
+* Browse Stores
+* Submit Review
+* Community Reviews
 
-## Security
+### Store Owner Dashboard
 
-- Passwords hashed with **bcrypt** (12 rounds)
-- JWT tokens expire in **24 hours**
-- Role-based access control on all API routes
-- Input validation and sanitization on all forms
-- SQL injection prevention via parameterized queries
+* Store Analytics
+* Rating Breakdown
+* Customer Reviews
+* Store Requests
+* Edit Profile
+
+### Admin Dashboard
+
+* Dashboard Overview
+* User Management
+* Store Management
+* Store Request Approval
+
+> Add screenshots inside `/screenshots` folder and update image paths.
 
 ---
 
-## Default Admin Credentials
+## 🚧 Challenges Faced & Solutions
 
-```
-Email:    admin@ratestore.com
-Password: Admin@123
-```
+### Preventing Multiple Ratings
 
-> ⚠️ Change these credentials immediately in a production environment.
+**Problem:** Users could potentially submit multiple ratings for the same store.
+
+**Solution:** Added a database-level uniqueness constraint on `(store_id, user_id)` to enforce one rating per user per store.
+
+---
+
+### Role-Based Security
+
+**Problem:** Restricting access to administrator and owner pages.
+
+**Solution:** Implemented JWT authentication and React protected routes with role-based authorization.
+
+---
+
+### Store Approval Workflow
+
+**Problem:** Allowing owners to create/edit/delete stores without giving direct database access.
+
+**Solution:** Implemented a request approval system where administrators review and approve store modification requests.
+
+---
+
+## 🔮 Future Enhancements
+
+* Email Verification
+* Forgot Password
+* Rating Trend Charts
+* Notifications System
+* Docker Support
+* CI/CD Pipeline
+* Unit Testing
+* Integration Testing
+* Audit Logs
+
+---
+
+## 👨‍💻 Author
+
+**Gaurav Thorat**
+
+GitHub: https://github.com/Gaurav27005
+
+---
+
+## 📄 License
+
+This project was developed for educational purposes and internship assessment.
