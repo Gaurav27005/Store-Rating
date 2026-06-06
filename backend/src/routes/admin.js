@@ -1,13 +1,16 @@
 const express = require('express');
 const router  = express.Router();
 const bcrypt  = require('bcryptjs');
+
+console.log("🚨 ADMIN ROUTES FILE IS SUCCESSFULLY LOADING! 🚨");
+
 const { pool } = require('../db');
 const { authenticate, authorize } = require('../middleware/auth');
-const { userValidation, storeValidation, handleValidation } = require('../middleware/validate');
+const { userValidation, handleValidation } = require('../middleware/validate');
 
 const isAdmin = [authenticate, authorize('admin')];
 
-// --- DASHBOARD & RATINGS ---
+// --- DASHBOARD ---
 router.get('/dashboard', isAdmin, async (req, res) => {
   try {
     const [u, s, r] = await Promise.all([
@@ -19,6 +22,7 @@ router.get('/dashboard', isAdmin, async (req, res) => {
   } catch (err) { res.status(500).json({ error: 'Server error' }); }
 });
 
+// --- RATINGS ---
 router.get('/all-ratings', isAdmin, async (req, res) => {
   try {
     const { storeName, sort = 'updated_at', order = 'DESC' } = req.query;
@@ -50,11 +54,16 @@ router.post('/users', isAdmin, userValidation, handleValidation, async (req, res
 
 router.get('/users', isAdmin, async (req, res) => {
   try {
-    const { name, role } = req.query;
-    let query = `SELECT id,name,email,role FROM users`;
+    const { name, email, address, role } = req.query;
+    let query = `SELECT id, name, email, role, address FROM users WHERE 1=1`;
     const params = [];
-    if (name) { query += ` WHERE name ILIKE $1`; params.push(`%${name}%`); }
-    res.json({ users: (await pool.query(query, params)).rows });
+    if (name) { query += ` AND name ILIKE $${params.length + 1}`; params.push(`%${name}%`); }
+    if (email) { query += ` AND email ILIKE $${params.length + 1}`; params.push(`%${email}%`); }
+    if (address) { query += ` AND address ILIKE $${params.length + 1}`; params.push(`%${address}%`); }
+    if (role) { query += ` AND role = $${params.length + 1}`; params.push(role); }
+    
+    const result = await pool.query(query, params);
+    res.json({ users: result.rows, total: result.rows.length });
   } catch (err) { res.status(500).json({ error: 'Server error' }); }
 });
 
@@ -68,9 +77,32 @@ router.delete('/users/:id', isAdmin, async (req, res) => {
 // --- STORE MANAGEMENT ---
 router.get('/stores', isAdmin, async (req, res) => {
   try {
-    const query = `SELECT s.*, u.email AS owner_email, ROUND(AVG(r.rating),1) as avg_rating FROM stores s LEFT JOIN users u ON s.owner_id=u.id LEFT JOIN ratings r ON s.id=r.store_id GROUP BY s.id, u.email`;
-    res.json({ stores: (await pool.query(query)).rows });
+    const { name, email, address } = req.query;
+    let query = `SELECT s.*, u.email AS owner_email, ROUND(AVG(r.rating),1) as avg_rating 
+                 FROM stores s 
+                 LEFT JOIN users u ON s.owner_id=u.id 
+                 LEFT JOIN ratings r ON s.id=r.store_id 
+                 WHERE 1=1`;
+    const params = [];
+    if (name) { query += ` AND s.name ILIKE $${params.length + 1}`; params.push(`%${name}%`); }
+    if (email) { query += ` AND u.email ILIKE $${params.length + 1}`; params.push(`%${email}%`); }
+    if (address) { query += ` AND s.address ILIKE $${params.length + 1}`; params.push(`%${address}%`); }
+    
+    query += ` GROUP BY s.id, u.email`;
+    const result = await pool.query(query, params);
+    res.json({ stores: result.rows, total: result.rows.length });
   } catch (err) { res.status(500).json({ error: 'Server error' }); }
+});
+
+router.delete('/stores/:id', isAdmin, async (req, res) => {
+  console.log("🔥 DELETE ROUTE TRIGGERED FOR STORE ID:", req.params.id); // ADD THIS
+  try {
+    await pool.query('DELETE FROM stores WHERE id=$1', [req.params.id]);
+    res.json({ message: 'Deleted' });
+  } catch (err) { 
+    console.error(err);
+    res.status(500).json({ error: 'Server error' }); 
+  }
 });
 
 // --- REQUESTS ---

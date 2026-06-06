@@ -9,16 +9,17 @@ export const AuthProvider = ({ children }) => {
     catch { return null; }
   });
 
-  const login = async (email, password) => {
-    const { data } = await api.post('/auth/login', { email, password });
+  // Updated to ensure user state is set correctly with role
+  const register = async (formData) => {
+    const { data } = await api.post('/auth/register', formData);
     localStorage.setItem('token', data.token);
     localStorage.setItem('user', JSON.stringify(data.user));
     setUser(data.user);
     return data.user;
   };
 
-  const register = async (formData) => {
-    const { data } = await api.post('/auth/register', formData);
+  const login = async (email, password) => {
+    const { data } = await api.post('/auth/login', { email, password });
     localStorage.setItem('token', data.token);
     localStorage.setItem('user', JSON.stringify(data.user));
     setUser(data.user);
@@ -31,12 +32,13 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
-  const updatePassword = async (currentPassword, newPassword) => {
-    await api.put('/auth/password', { currentPassword, newPassword });
+  const updateUser = (updatedUser) => {
+    setUser(updatedUser);
+    localStorage.setItem('user', JSON.stringify(updatedUser));
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, updatePassword }}>
+    <AuthContext.Provider value={{ user, login, register, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

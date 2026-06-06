@@ -4,7 +4,7 @@ import { useToast } from '../../context/ToastContext';
 import api from '../../api';
 
 export default function OwnerProfile() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth(); // Assuming updateUser exists in context
   const toast    = useToast();
   const [form,    setForm]    = useState({ name: user?.name||'', address: user?.address||'' });
   const [error,   setError]   = useState('');
@@ -25,10 +25,10 @@ export default function OwnerProfile() {
       await api.put('/owner/profile', { name: trimName, address: form.address });
       toast('Profile updated!');
       setSuccess(true);
-      // Update local storage
+      // Synchronize context and local storage
+      updateUser({ ...user, name: trimName, address: form.address });
       const stored = JSON.parse(localStorage.getItem('user')||'{}');
-      stored.name = trimName; stored.address = form.address;
-      localStorage.setItem('user', JSON.stringify(stored));
+      localStorage.setItem('user', JSON.stringify({ ...stored, name: trimName, address: form.address }));
     } catch(e) { setError(e.response?.data?.error||'Update failed'); }
     finally { setLoading(false); }
   };

@@ -47,7 +47,7 @@ export default function App() {
             {/* Change password for all roles */}
             <Route path="/change-password" element={<ProtectedRoute roles={['user','store_owner','admin']}><ChangePassword /></ProtectedRoute>} />
 
-            {/* Store owner */}
+            {/* Store owner - Explicitly allowing store_owner role */}
             <Route path="/owner/dashboard" element={<ProtectedRoute roles={['store_owner']}><OwnerDashboard /></ProtectedRoute>} />
             <Route path="/owner/profile"   element={<ProtectedRoute roles={['store_owner']}><OwnerProfile /></ProtectedRoute>} />
 

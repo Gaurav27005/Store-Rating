@@ -34,10 +34,13 @@ router.post('/login', loginValidation, handleValidation, async (req, res) => {
   }
 });
 
-// POST /api/auth/register  (normal users only)
+// POST /api/auth/register
 router.post('/register', userValidation, handleValidation, async (req, res) => {
   try {
-    const { name, email, password, address } = req.body;
+    const { name, email, password, address, role } = req.body;
+    // Ensure only valid roles are assigned
+    const userRole = ['store_owner'].includes(role) ? 'store_owner' : 'user';
+
     const existing = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
     if (existing.rows.length > 0) {
       return res.status(409).json({ error: 'An account with this email already exists' });
@@ -45,9 +48,9 @@ router.post('/register', userValidation, handleValidation, async (req, res) => {
     const hash = await bcrypt.hash(password, 12);
     const result = await pool.query(
       `INSERT INTO users (name, email, password, address, role)
-       VALUES ($1, $2, $3, $4, 'user')
+       VALUES ($1, $2, $3, $4, $5)
        RETURNING id, name, email, address, role`,
-      [name, email, hash, address || null]
+      [name, email, hash, address || null, userRole]
     );
     const user = result.rows[0];
     const token = generateToken(user);

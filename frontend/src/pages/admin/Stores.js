@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import api from '../../api';
 import { useToast } from '../../context/ToastContext';
 import SortableTh from '../../components/SortableTh';
@@ -19,6 +19,7 @@ export default function AdminStores() {
   // Review specific states
   const [reviews, setReviews] = useState([]);
   const [deletingReviewId, setDeletingReviewId] = useState(null);
+  const [deletingStoreId, setDeletingStoreId] = useState(null);
 
   const fetchStores = async () => {
     setLoading(true);
@@ -37,6 +38,22 @@ export default function AdminStores() {
 
   const handleSort = f => { if (sort===f) setOrder(o=>o==='ASC'?'DESC':'ASC'); else { setSort(f); setOrder('ASC'); } };
   const setFilter  = k => e => setFilters(f=>({...f,[k]:e.target.value}));
+
+  // --- DELETE STORE LOGIC ---
+  const handleDeleteStore = async (store) => {
+    if (!window.confirm(`Are you sure you want to delete the store "${store.name}"? This action will also delete all ratings associated with it.`)) return;
+    setDeletingStoreId(store.id);
+    try {
+      await api.delete(`/admin/stores/${store.id}`);
+      toast('Store deleted successfully');
+      setStores(stores.filter(s => s.id !== store.id));
+      setTotal(t => t - 1);
+    } catch (err) {
+      toast('Failed to delete store', 'error');
+    } finally {
+      setDeletingStoreId(null);
+    }
+  };
 
   // --- REVIEWS MODAL LOGIC ---
   const openReviews = async (store) => {
@@ -95,7 +112,7 @@ export default function AdminStores() {
               <SortableTh field="address" label="Address" sort={sort} order={order} onSort={handleSort}/>
               <th>Owner Email</th>
               <SortableTh field="avg_rating" label="Avg Rating" sort={sort} order={order} onSort={handleSort}/>
-              <th style={{width: 150}}>Actions</th>
+              <th style={{width: 180}}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -112,7 +129,16 @@ export default function AdminStores() {
                   ) : <span className="td-muted">—</span>}
                 </td>
                 <td>
-                  <button className="btn btn-ghost btn-sm" onClick={() => openReviews(s)}>View Reviews</button>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button className="btn btn-ghost btn-sm" onClick={() => openReviews(s)}>View Reviews</button>
+                    <button 
+                      className="btn btn-danger btn-sm" 
+                      onClick={() => handleDeleteStore(s)}
+                      disabled={deletingStoreId === s.id}
+                    >
+                      {deletingStoreId === s.id ? 'Deleting...' : 'Delete'}
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

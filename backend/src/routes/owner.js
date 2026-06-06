@@ -30,7 +30,6 @@ router.get('/stores/:storeId', authenticate, authorize('store_owner'), async (re
     if (storeResult.rows.length === 0) return res.status(404).json({ error: 'Store not found or not owned by you' });
     const store = storeResult.rows[0];
     
-    // Updated to pull r.feedback
     const [stats, raters] = await Promise.all([
       pool.query('SELECT ROUND(AVG(rating),2) AS avg_rating,COUNT(*) AS total FROM ratings WHERE store_id=$1',[storeId]),
       pool.query(`SELECT u.id, u.name, u.email, u.address, r.rating, r.feedback, r.updated_at
@@ -43,6 +42,21 @@ router.get('/stores/:storeId', authenticate, authorize('store_owner'), async (re
       totalRatings: parseInt(stats.rows[0].total),
       raters: raters.rows,
     });
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Server error' }); }
+});
+
+// PUT /api/owner/profile (NEW ROUTE)
+router.put('/profile', authenticate, authorize('store_owner'), async (req, res) => {
+  try {
+    const { name, address } = req.body;
+    if (!name || name.length < 20 || name.length > 60) {
+      return res.status(400).json({ error: 'Name must be between 20 and 60 characters' });
+    }
+    await pool.query(
+      'UPDATE users SET name=$1, address=$2, updated_at=NOW() WHERE id=$3',
+      [name, address, req.user.id]
+    );
+    res.json({ message: 'Profile updated' });
   } catch (err) { console.error(err); res.status(500).json({ error: 'Server error' }); }
 });
 

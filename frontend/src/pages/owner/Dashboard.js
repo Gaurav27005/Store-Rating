@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-
 import api from '../../api';
 import { StarDisplay } from '../../components/StarRating';
 import SortableTh from '../../components/SortableTh';
@@ -125,18 +124,22 @@ export default function OwnerDashboard() {
     <div>
       <div className="page-header-row">
         <div><h1 className="page-title">My Stores</h1><p className="page-subtitle">{stores.length} store{stores.length!==1?'s':''} under your ownership</p></div>
-        <button className="btn btn-secondary" onClick={()=>{ setFormError(''); setReqForm({ type:'add_store',store_name:'',store_email:'',store_address:'',note:'' }); setReqModal(true); }}>
-          + Request New Store
-        </button>
+        {stores.length > 0 && (
+          <button className="btn btn-secondary" onClick={()=>{ setFormError(''); setReqForm({ type:'add_store',store_name:'',store_email:'',store_address:'',note:'' }); setReqModal(true); }}>
+            + Request New Store
+          </button>
+        )}
       </div>
 
       {stores.length === 0 ? (
-        <div className="card">
+        <div className="card" style={{ textAlign: 'center', padding: '60px 20px' }}>
           <div className="empty-state">
-            <div className="empty-state-icon">🏪</div>
-            <div className="empty-state-title">No stores assigned yet</div>
-            <div className="empty-state-desc">Contact your administrator or submit a store request.</div>
-            <button className="btn btn-primary" style={{marginTop:16}} onClick={()=>{ setFormError(''); setReqModal(true); }}>Submit Store Request</button>
+            <div className="empty-state-icon" style={{ fontSize: 48 }}>🚀</div>
+            <div className="empty-state-title" style={{ fontSize: 20, marginTop: 16 }}>Welcome! Publish your 1st store</div>
+            <div className="empty-state-desc" style={{ color: 'var(--text-2)', marginTop: 8 }}>You haven't registered any stores yet. Start by submitting a request to add your first store to the platform.</div>
+            <button className="btn btn-primary" style={{ marginTop: 24 }} onClick={()=>{ setFormError(''); setReqForm({ type:'add_store',store_name:'',store_email:'',store_address:'',note:'' }); setReqModal(true); }}>
+              Publish 1st Store
+            </button>
           </div>
         </div>
       ) : (

@@ -20,7 +20,7 @@ export default function Register() {
   const { register } = useAuth();
   const navigate = useNavigate();
   const toast    = useToast();
-  const [form,    setForm]    = useState({ name: '', email: '', password: '', address: '' });
+  const [form,    setForm]    = useState({ name: '', email: '', password: '', address: '', role: 'user' });
   const [error,   setError]   = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -36,7 +36,7 @@ export default function Register() {
     try {
       await register({ ...form, name: form.name.trim() });
       toast('Account created! Welcome to RateStore.');
-      navigate('/stores');
+      navigate(form.role === 'store_owner' ? '/owner/dashboard' : '/stores');
     } catch (err) {
       setError(err.response?.data?.error || 'Registration failed. Please try again.');
     } finally {
@@ -69,7 +69,7 @@ export default function Register() {
 
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label className="form-label">Full Name <span style={{ color: 'var(--text-3)', fontWeight: 400 }}>(20–60 characters)</span></label>
+              <label className="form-label">Full Name</label>
               <input type="text" className="form-input" placeholder="e.g. Rahul Pratap Singh"
                 value={form.name} onChange={set('name')} required />
               <div className="form-hint" style={{ color: trimmed.length > 60 ? 'var(--danger)' : trimmed.length >= 20 ? 'var(--success)' : 'var(--text-3)' }}>
@@ -84,9 +84,17 @@ export default function Register() {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Password <span style={{ color: 'var(--text-3)', fontWeight: 400 }}>(8–16 chars, 1 uppercase, 1 special)</span></label>
+              <label className="form-label">Password</label>
               <input type="password" className="form-input" placeholder="Create a strong password"
                 value={form.password} onChange={set('password')} required />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">I am a...</label>
+              <select className="form-input" value={form.role} onChange={set('role')}>
+                <option value="user">Normal User</option>
+                <option value="store_owner">Store Owner</option>
+              </select>
             </div>
 
             <div className="form-group">
