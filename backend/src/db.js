@@ -33,6 +33,7 @@ const initDB = async () => {
         store_id    UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
         user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         rating      INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+        feedback    TEXT,
         created_at  TIMESTAMP NOT NULL DEFAULT NOW(),
         updated_at  TIMESTAMP NOT NULL DEFAULT NOW(),
         UNIQUE(store_id, user_id)
@@ -50,7 +51,6 @@ const initDB = async () => {
         created_at   TIMESTAMP NOT NULL DEFAULT NOW(),
         updated_at   TIMESTAMP NOT NULL DEFAULT NOW()
       );
-      CREATE INDEX IF NOT EXISTS idx_ratings_store   ON ratings(store_id);
       CREATE INDEX IF NOT EXISTS idx_ratings_user    ON ratings(user_id);
       CREATE INDEX IF NOT EXISTS idx_users_email     ON users(email);
       CREATE INDEX IF NOT EXISTS idx_users_role      ON users(role);
@@ -58,6 +58,11 @@ const initDB = async () => {
       CREATE INDEX IF NOT EXISTS idx_req_user        ON store_requests(user_id);
       CREATE INDEX IF NOT EXISTS idx_req_status      ON store_requests(status);
     `);
+
+    // ---> THIS LINE FIXES THE 500 ERROR <---
+    // It forces Postgres to add the feedback column to existing databases
+    await client.query(`ALTER TABLE ratings ADD COLUMN IF NOT EXISTS feedback TEXT;`);
+
     const adminCheck = await client.query("SELECT id FROM users WHERE role='admin' LIMIT 1");
     if (adminCheck.rows.length === 0) {
       const bcrypt = require('bcryptjs');
@@ -66,7 +71,7 @@ const initDB = async () => {
         `INSERT INTO users (name,email,password,address,role) VALUES ($1,$2,$3,$4,'admin')`,
         ['System Administrator','admin@ratestore.com',hash,'123 Admin Street, System City']
       );
-      console.log('✅ Default admin created  →  admin@ratestore.com / Admin@123');
+      console.log('✅ Default admin created');
     }
     console.log('✅ Database ready');
   } finally { client.release(); }

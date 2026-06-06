@@ -20,11 +20,11 @@ const passwordRules = (field = 'password') => [
 
 const userValidation = [
   body('name')
-    .trim()                          // strip leading/trailing spaces before validation
+    .trim()
     .notEmpty()
     .withMessage('Name is required')
-    .isLength({ max: 60 })
-    .withMessage('Name must be at most 60 characters'),
+    .isLength({ min: 20, max: 60 })
+    .withMessage('Name must be between 20 and 60 characters'),
   body('email')
     .isEmail()
     .normalizeEmail()
@@ -67,6 +67,11 @@ const ratingValidation = [
   body('rating')
     .isInt({ min: 1, max: 5 })
     .withMessage('Rating must be an integer between 1 and 5'),
+  body('feedback')
+    .optional({ checkFalsy: true })
+    .isString()
+    .isLength({ max: 1000 })
+    .withMessage('Feedback must be at most 1000 characters'),
 ];
 
 module.exports = {

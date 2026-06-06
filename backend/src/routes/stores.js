@@ -4,18 +4,11 @@ const { pool } = require('../db');
 const { authenticate, authorize } = require('../middleware/auth');
 const { ratingValidation, handleValidation } = require('../middleware/validate');
 
-// GET /api/stores  — browse stores (user + admin)
+// GET /api/stores
 router.get('/', authenticate, authorize('user', 'admin'), async (req, res) => {
   try {
-    const {
-      name, address,
-      sort = 'name', order = 'ASC',
-      page = 1, limit = 12,
-    } = req.query;
-
+    const { name, address, sort = 'name', order = 'ASC', page = 1, limit = 12 } = req.query;
     const userId = req.user.id;
-
-    // Build filter conditions with 1-based param index
     const conditions  = [];
     const filterParams = [];
 
@@ -28,12 +21,10 @@ router.get('/', authenticate, authorize('user', 'admin'), async (req, res) => {
     const limitNum = Math.min(50,  parseInt(limit) || 12);
     const offset   = (pageNum - 1) * limitNum;
 
-    // Main query:  $1 = userId, then filter params, then limit, offset
     const mainParams = [userId, ...filterParams, limitNum, offset];
     const limitIdx   = mainParams.length - 1;
     const offsetIdx  = mainParams.length;
 
-    // Re-index WHERE conditions for main query (userId is $1, filters start at $2)
     const mainConditions  = [];
     let   mainIdx = 2;
     if (name)    { mainConditions.push(`s.name    ILIKE $${mainIdx++}`); }
@@ -46,15 +37,16 @@ router.get('/', authenticate, authorize('user', 'admin'), async (req, res) => {
 
     const dataQuery = `
       SELECT
-        s.id, s.name, s.address, s.email,
+        s.id, s.name, s.address,
         ROUND(AVG(r.rating),  1) AS avg_rating,
         COUNT(r.id)              AS rating_count,
-        ur.rating                AS user_rating
+        ur.rating                AS user_rating,
+        ur.feedback              AS user_feedback
       FROM stores s
       LEFT JOIN ratings r  ON r.store_id = s.id
       LEFT JOIN ratings ur ON ur.store_id = s.id AND ur.user_id = $1
       ${mainWhere}
-      GROUP BY s.id, ur.rating
+      GROUP BY s.id, ur.rating, ur.feedback
       ORDER BY ${useRatingSort ? 'AVG(r.rating)' : `s.${sortCol}`} ${sortDir} NULLS LAST
       LIMIT $${limitIdx} OFFSET $${offsetIdx}
     `;
@@ -73,10 +65,7 @@ router.get('/', authenticate, authorize('user', 'admin'), async (req, res) => {
       page:       pageNum,
       totalPages: Math.ceil(parseInt(countResult.rows[0].count) / limitNum),
     });
-  } catch (err) {
-    console.error('Browse stores error:', err);
-    res.status(500).json({ error: 'Server error' });
-  }
+  } catch (err) { res.status(500).json({ error: 'Server error' }); }
 });
 
 // POST /api/stores/:storeId/rate
@@ -89,27 +78,37 @@ router.post(
   async (req, res) => {
     try {
       const { storeId } = req.params;
-      const { rating }  = req.body;
+      const { rating, feedback }  = req.body;
 
       const storeCheck = await pool.query('SELECT id FROM stores WHERE id = $1', [storeId]);
-      if (storeCheck.rows.length === 0) {
-        return res.status(404).json({ error: 'Store not found' });
-      }
+      if (storeCheck.rows.length === 0) return res.status(404).json({ error: 'Store not found' });
 
       const result = await pool.query(`
-        INSERT INTO ratings (store_id, user_id, rating)
-        VALUES ($1, $2, $3)
+        INSERT INTO ratings (store_id, user_id, rating, feedback)
+        VALUES ($1, $2, $3, $4)
         ON CONFLICT (store_id, user_id)
-          DO UPDATE SET rating = EXCLUDED.rating, updated_at = NOW()
+          DO UPDATE SET rating = EXCLUDED.rating, feedback = EXCLUDED.feedback, updated_at = NOW()
         RETURNING *
-      `, [storeId, req.user.id, rating]);
+      `, [storeId, req.user.id, rating, feedback || null]);
 
       res.json(result.rows[0]);
-    } catch (err) {
-      console.error('Rate store error:', err);
-      res.status(500).json({ error: 'Server error' });
-    }
+    } catch (err) { res.status(500).json({ error: 'Server error' }); }
   }
 );
+
+// GET /api/stores/:storeId/reviews
+router.get('/:storeId/reviews', authenticate, async (req, res) => {
+  try {
+    const { storeId } = req.params;
+    const result = await pool.query(`
+      SELECT r.id, r.rating, r.feedback, r.updated_at, u.name AS reviewer_name, u.id AS reviewer_id
+      FROM ratings r
+      JOIN users u ON u.id = r.user_id
+      WHERE r.store_id = $1
+      ORDER BY r.updated_at DESC
+    `, [storeId]);
+    res.json(result.rows);
+  } catch (err) { res.status(500).json({ error: 'Server error' }); }
+});
 
 module.exports = router;
