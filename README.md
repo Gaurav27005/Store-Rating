@@ -391,33 +391,55 @@ GET /api/owner/dashboard
 
 ## 📸 Screenshots
 
-### Authentication
+## 📸 Screenshots
 
-* Login Page
-* Registration Page
+### Login Page
+
+![Login](screenshots/login.png)
+
+### Registration Page
+
+![Registration](screenshots/register.png)
 
 ### User Dashboard
 
-* Browse Stores
-* Submit Review
-* Community Reviews
+![User Dashboard](screenshots/user-dashboard.png)
+
+### Submit Review
+
+![Review Modal](screenshots/review-modal.png)
 
 ### Store Owner Dashboard
 
-* Store Analytics
-* Rating Breakdown
-* Customer Reviews
-* Store Requests
-* Edit Profile
+![Owner Dashboard](screenshots/owner-dashboard.png)
+
+### Request New Store
+
+![Request New Store](screenshots/request-new-store.png)
+
+### Request Store Deletion
+
+![Request Store Deletion](screenshots/request-delete-store.png)
 
 ### Admin Dashboard
 
-* Dashboard Overview
-* User Management
-* Store Management
-* Store Request Approval
+![Admin Dashboard](screenshots/admin-dashboard.png)
 
-> Add screenshots inside `/screenshots` folder and update image paths.
+### User Management
+
+![User Management](screenshots/admin-users.png)
+
+### Store Management
+
+![Store Management](screenshots/admin-stores.png)
+
+### Change Password
+
+![Change Password](screenshots/change-password.png)
+
+### Edit Profile
+
+![Edit Profile](screenshots/edit-profile.png)
 
 ---
 
