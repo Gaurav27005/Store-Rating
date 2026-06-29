@@ -67,6 +67,118 @@ router.get('/users', isAdmin, async (req, res) => {
   } catch (err) { res.status(500).json({ error: 'Server error' }); }
 });
 
+// --- GET SINGLE USER ---
+router.get('/users/:id', isAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query(
+      `SELECT
+          id,
+          name,
+          email,
+          address,
+          role,
+          created_at,
+          updated_at
+       FROM users
+       WHERE id = $1`,
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        error: 'User not found'
+      });
+    }
+
+    res.json(result.rows[0]);
+
+  } catch (err) {
+    console.error('Get User Error:', err);
+    res.status(500).json({
+      error: 'Internal server error'
+    });
+  }
+});
+
+// --- UPDATE USER ---
+router.put('/users/:id', isAdmin, async (req, res) => {
+  try {
+
+    const { id } = req.params;
+    const { name, email, address, role } = req.body;
+
+    // Check if user exists
+    const existingUser = await pool.query(
+      `SELECT id
+       FROM users
+       WHERE id = $1`,
+      [id]
+    );
+
+    if (existingUser.rows.length === 0) {
+      return res.status(404).json({
+        error: 'User not found'
+      });
+    }
+
+    // Check duplicate email
+    const duplicate = await pool.query(
+      `SELECT id
+       FROM users
+       WHERE email = $1
+       AND id <> $2`,
+      [email.trim().toLowerCase(), id]
+    );
+
+    if (duplicate.rows.length > 0) {
+      return res.status(400).json({
+        error: 'Email already exists'
+      });
+    }
+
+    const updated = await pool.query(
+      `UPDATE users
+       SET
+          name = $1,
+          email = $2,
+          address = $3,
+          role = $4,
+          updated_at = NOW()
+       WHERE id = $5
+       RETURNING
+          id,
+          name,
+          email,
+          address,
+          role,
+          updated_at`,
+      [
+        name.trim(),
+        email.trim().toLowerCase(),
+        address || null,
+        role,
+        id
+      ]
+    );
+
+    res.json({
+      message: 'User updated successfully',
+      user: updated.rows[0]
+    });
+
+  } catch (err) {
+    console.error('Update User Error:', err);
+
+    res.status(500).json({
+      error: 'Internal server error'
+    });
+  }
+});
+
+
+
 router.delete('/users/:id', isAdmin, async (req, res) => {
   try {
     await pool.query('DELETE FROM users WHERE id=$1', [req.params.id]);
